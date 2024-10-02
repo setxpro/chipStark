@@ -1,0 +1,125 @@
+# Utlizizar o DEBIAN 11
+#------------------------------------------------------------------
+#PREPARAR O USUARIO PARA HABILITAR O ROOT
+# HABILITAR "USUARIO" A SER ROOT
+
+su -
+nano /etc/sudoers
+
+##--------------------------------------------------
+#ENCONTRAR ESTA LINHA NO ARQUIVO
+
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+
+#Insira a seguinte linha abaixo do local citado:
+<seu usuario>   ALL=(ALL:ALL) ALL
+
+Exemplo: 
+engenharia   ALL=(ALL:ALL) ALL 
+
+CTRL+O #irá salvar as alterações no arquivo
+e
+CTRL+X #irá encerrar o programa 'nano'
+
+
+
+#atualizar a lista de fontes para update
+sudo nano /etc/apt/sources.list
+
+#Inserir as linhas abaixo no arquivo e comentar as demoais:
+deb http://deb.debian.org/debian bullseye main
+deb-src http://deb.debian.org/debian bullseye main
+
+deb http://deb.debian.org/debian-security/ bullseye-security main
+deb-src http://deb.debian.org/debian-security/ bullseye-security main
+
+deb http://deb.debian.org/debian bullseye-updates main
+deb-src http://deb.debian.org/debian bullseye-updates main
+
+
+
+sudo apt update
+sudo apt upgrade
+
+#INSTALAR FERRAMENTAS DE REDE 
+sudo apt-get install net-tools -y
+
+sudo apt-get install mlocate -y
+
+sudo nano ~/.bashrc
+
+#na ultima linha do arquivo adicione:
+export PATH=/usr/sbin:$PATH
+
+#Feche o terminal e abra novamente
+# ifconfig deve estar funcionando
+
+
+# CHIPSTACK
+sudo apt install \
+    mosquitto \
+    mosquitto-clients \
+    redis-server \
+    redis-tools \
+    postgresql
+
+
+#rodar o postgree
+sudo -u postgres psql
+
+
+# COM O POSTGREE RODANDO, EXECUTE CADA UMA DAS LINHAS NO BANCO DE DADOS
+
+-- create role for authentication
+create role chirpstack with login password 'chirpstack';
+
+-- create database
+create database chirpstack with owner chirpstack;
+
+-- change to chirpstack database
+\c chirpstack
+
+-- create pg_trgm extension
+create extension pg_trgm;
+
+-- exit psql
+\q
+
+
+## Setup software repository
+sudo apt install apt-transport-https dirmngr
+
+
+# Set up the key for the ChirpStack repository:
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1CE2AFD36DBCCA00
+
+sudo echo "deb https://artifacts.chirpstack.io/packages/4.x/deb stable main" | sudo tee /etc/apt/sources.list.d/chirpstack.list
+
+sudo apt update
+
+
+## Install ChirpStack Gateway Bridge
+sudo apt install chirpstack-gateway-bridge
+
+#ABRIR O ARQUIVO E EDITAR:
+sudo nano /etc/chirpstack-gateway-bridge/chirpstack-gateway-bridge.toml
+
+
+[integration.mqtt]
+event_topic_template="au915_0/gateway/{{ .GatewayID }}/event/{{ .EventType }}"
+command_topic_template="au915_0/gateway/{{ .GatewayID }}/command/#"
+
+
+#Starting
+#Start the ChirpStack Gateway Bridge service:
+
+sudo systemctl start chirpstack-gateway-bridge
+sudo systemctl enable chirpstack-gateway-bridge
+
+sudo apt install chirpstack
+
+sudo systemctl start chirpstack
+sudo systemctl enable chirpstack
+
+
